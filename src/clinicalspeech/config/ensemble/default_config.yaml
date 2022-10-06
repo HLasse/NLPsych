@@ -1,0 +1,1 @@
+ensemble_type: mean # mean, max, or concatened embeddings
