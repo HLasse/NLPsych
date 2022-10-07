@@ -1,5 +1,21 @@
 text_path: data/text.csv
-audio_path: data/audio.csv
-id_column_name: id
-trial_column_name: trial_id
+audio_path: data/audio.csv 
 
+audio_path_column_name: filename
+id_column_name: id
+label_column_name: label
+trial_column_name: trial_id
+split_column_name: split
+origin_column_name: origin # column indicating which group the data belongs to 
+# e.g. DEPR, SCHZ, ASD. Used for subsetting during training of binary models.
+control_label_name: TD
+
+
+multiclass_label2id_mapping: { "TD": 0, "DEPR": 1, "ASD": 2, "SCHZ": 3 }
+multiclass_id2label_mapping: { 0: "TD", 1: "DEPR", 2: "ASD", 3: "SCHZ" }
+
+use_class_weights: True # to account for unbalanced classes
+
+wandb_project_name: "multi-diagnosis"
+
+debug: False
