@@ -236,9 +236,11 @@ def train_and_evaluate_models(
         is_baseline (bool): Whether to train baseline models or not
     """
     # Loop over each feature set
-    for feat_set in embedding_fn_dict.keys():
-        if feat_set in ["windowed_mfccs"]:
-            continue
+    for feat_set in config.audio.baseline_models_to_train:
+        if feat_set not in embedding_fn_dict:
+            raise ValueError(
+                f"Invalid feature set {feat_set}. Must be one of {embedding_fn_dict.keys()}"
+            )
         embedding_fn = embedding_fn_dict[feat_set]()
         msg.info(f"Starting {feat_set}...")
         # train model
