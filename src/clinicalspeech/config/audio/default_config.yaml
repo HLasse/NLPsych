@@ -1,11 +1,15 @@
 train_binary_models: True
 train_multiclass_models: True
 debug: False
+save_models: False
 
 batch_size: 32
 patience: False
 num_workers: 30
 auto_lr_find: False
+
+baseline_models_to_train: ["xvector", "egemaps", "compare", "aggregated_mfccs", "xlsr-danish", "xlsr"] # wav2vec embedding, 
+wav2vec_model_ids: ["placeholder"]
 
 augmentations:
   transform: Compose

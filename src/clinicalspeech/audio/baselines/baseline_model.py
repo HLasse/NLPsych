@@ -11,6 +11,10 @@ from torchmetrics import Accuracy, F1Score, MetricCollection, Precision, Recall
 
 
 class BaselineClassifier(pl.LightningModule):
+    """Baseline classification model. Maps the features to a single linear layer
+    which is fed to a classification head. Very similar to HuggingFace's classification
+    layers."""
+
     def __init__(
         self,
         num_classes: int,
