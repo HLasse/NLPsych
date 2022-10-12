@@ -1,7 +1,10 @@
-text_path: data/text.csv
+text_path: ../data/text.csv
 audio_path: ../data/audio.csv
 
 audio_path_column_name: filename
+text_transcript_column_name: text
+text_embeddings_column_name: fasttext
+text_bow_column_name: None
 id_column_name: id
 label_column_name: label
 trial_column_name: trial_id
