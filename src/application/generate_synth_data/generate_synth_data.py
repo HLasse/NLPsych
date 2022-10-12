@@ -8,12 +8,12 @@ import torchaudio
 
 from clinicalspeech.utils import PROJECT_ROOT
 
-# pylint: disable=dangerous-default-value
+# pylint: disable=dangerous-default-value,redefined-outer-name
 
 
 def make_synth_audio_data(n_samples: int, n_frames: int) -> torch.Tensor:
     """Make synthetic audio data"""
-    return torch.rand(n_samples, n_frames)
+    return torch.rand(n_samples, 1, n_frames)
 
 
 def make_synth_text_data(n_samples: int) -> list[str]:
@@ -51,6 +51,12 @@ def make_synth_trial_ids(ids: list[str]) -> list[str]:
     return [f"{id}_{i}" for i, id in enumerate(ids)]
 
 
+def save_audio_files(paths: list[str], audio_data: torch.Tensor) -> None:
+    """Save audio files"""
+    for path, audio in zip(paths, audio_data):
+        torchaudio.save(path, audio, 16000)
+
+
 if __name__ == "__main__":
     DATA_PATH = PROJECT_ROOT / "data"
     AUDIO_FILES_PATH = DATA_PATH / "audio_files"
@@ -60,14 +66,26 @@ if __name__ == "__main__":
     N_SAMPLES_PER_ID = 2
 
     audio_data = make_synth_audio_data(N_SAMPLES, N_FRAMES)
+    audio_paths = [AUDIO_FILES_PATH / f"{i}.wav" for i in range(N_SAMPLES)]
+    save_audio_files(audio_paths, audio_data)
 
-
-
-audio_path_column_name: filename
-id_column_name: id
-label_column_name: label
-trial_column_name: trial_id
-split_column_name: split
-origin_column_name: origin  # column indicating which group the data belongs to
-# e.g. DEPR, SCHZ, ASD. Used for subsetting during training of binary models.
-control_label_name: TD
+    text_data = make_synth_text_data(N_SAMPLES)
+    labels, origins = make_synth_labels_and_origin(N_SAMPLES)
+    ids = make_synth_ids(N_SAMPLES, N_SAMPLES_PER_ID)
+    trial_ids = make_synth_trial_ids(ids)
+    # put all variables into dataframe
+    df = pd.DataFrame(
+        {
+            "id": ids,
+            "trial_id": trial_ids,
+            "text": text_data,
+            "label": labels,
+            "origin": origins,
+            "audio_path": audio_paths,
+        }
+    )
+    # assign 60% of data to train, 20% to val, 20% to test
+    df["split"] = random.choices(
+        ["train", "val", "test"], weights=[0.6, 0.2, 0.2], k=N_SAMPLES
+    )
+    df.to_csv(DATA_PATH / "synth_data.csv", index=False)
