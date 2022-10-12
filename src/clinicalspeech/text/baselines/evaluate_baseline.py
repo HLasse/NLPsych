@@ -10,18 +10,18 @@ class Scorer():
         self.config = config
 
     def predict(self, 
-                data: np.array, 
+                data: np.ndarray, 
                 ids: list, 
-                labels: np.array, 
+                labels: np.ndarray, 
                 split: str,
                 binary: bool, 
                 origin: str,
-                model_id: str):
+                model_id: str) -> pd.DataFrame:
         ''' Predicts and saves prediction for a given model 
         Args:
-            data (np.array): input data
+            data (np.ndarray): input data
             ids (list): examples ids for the inputs
-            labels (np.array): true labels in numeric format
+            labels (np.ndarray): true labels in numeric format
             split (str): train, val or test
             binary (bool): whether a binary or a multiclass model is trained
             origin (str): which positive class we are targeting (e.g., DEPR)
@@ -52,4 +52,5 @@ class Scorer():
                     'is_baseline': 1}
         out_df = pd.DataFrame(out_dict)
         out_df.to_json(save_file, orient='records', lines=True)
+        return out_df
 

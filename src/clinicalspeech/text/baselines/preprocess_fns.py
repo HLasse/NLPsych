@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
-from abc import ABC
+from abc import ABC, abstractmethod
 from sklearn.preprocessing import StandardScaler
 from keras.preprocessing.text import Tokenizer
+from typing import Tuple
+
 
 class Preprocessor(ABC):
     ''' Abstract preprocessor class 
@@ -19,9 +21,10 @@ class Preprocessor(ABC):
 
 
 class DescriptivesPreprocessor(Preprocessor):
-'''  Preprocessor class for text descriptives '''
-    def _get_X(self):
-        X = df[self.features].values
+    '''  Preprocessor class for text descriptives '''
+
+    def _get_X(self, data):
+        X = data[self.features].values
         if len(X.shape) == 1:
             X = X.reshape(-1,1)
         X = self.scaler.fit_transform(X)
@@ -30,9 +33,9 @@ class DescriptivesPreprocessor(Preprocessor):
     def __call__(self, 
                  train_data: pd.DataFrame, 
                  val_data: pd.DataFrame, 
-                 test_data: pd.DataFrame) -> tuple[np.array, 
-                                                   np.array, 
-                                                   np.array]:
+                 test_data: pd.DataFrame) -> Tuple[np.ndarray, 
+                                                   np.ndarray, 
+                                                   np.ndarray]:
         """
         Args:
             train_data (pd.DataFrame): training data
@@ -44,18 +47,18 @@ class DescriptivesPreprocessor(Preprocessor):
         """
         outs = []
         for d in train_data, val_data, test_data:
-            outs.append(_get_X(d, self.features, self.scaler))
+            outs.append(self._get_X(d, self.features, self.scaler))
         return outs
 
 
 class EmbeddingPreprocessor(Preprocessor):
-'''  Preprocessor class for embeddings '''
+    '''  Preprocessor class for embeddings '''
     def __call__(self, 
                  train_data: pd.DataFrame, 
                  val_data: pd.DataFrame, 
-                 test_data: pd.DataFrame) -> tuple[np.array, 
-                                                   np.array, 
-                                                   np.array]:
+                 test_data: pd.DataFrame) -> Tuple[np.ndarray, 
+                                                   np.ndarray, 
+                                                   np.ndarray]:
         """
         Args:
             train_data (pd.DataFrame): training data
@@ -72,7 +75,7 @@ class EmbeddingPreprocessor(Preprocessor):
         
 
 class BowPreprocessor(Preprocessor):
-    """  Preprocessor class for BoW models '''
+    '''  Preprocessor class for BoW models
         Args:
             features (list or None): column names in input dataframe
                 where BoW features are encoded. If None (default), 
@@ -84,7 +87,7 @@ class BowPreprocessor(Preprocessor):
             val_data (pd.DataFrame): validation data
             test_data (pd.DataFrame): test data
             tokenizer_kwargs: kwargs for tf.keras.preprocessing.text.Tokenizer
-    """
+    '''
     def __init__(self, 
                  features=None, 
                  mode='tfidf', 
@@ -105,9 +108,9 @@ class BowPreprocessor(Preprocessor):
                  val_data: pd.DataFrame, 
                  test_data: pd.DataFrame,
                  text_col_name='text', 
-                 scale=False) -> tuple[np.array, 
-                                       np.array, 
-                                       np.array]:
+                 scale=False) -> Tuple[np.ndarray, 
+                                       np.ndarray, 
+                                       np.ndarray]:
         """
         Args:
             train_data (pd.DataFrame): training data
@@ -121,10 +124,11 @@ class BowPreprocessor(Preprocessor):
         """
         outs = []
         if self.features is None:
-            self.tokenizer.fit_on_texts(train_texts)
+            self.tokenizer.fit_on_texts(train_data)
             for d in train_data, val_data, test_data:
                 t_texts = d[text_col_name].tolist()
-                outs.append(self.tokenizer.texts_to_matrix(t, mode=self.mode))
+                outs.append(self.tokenizer.texts_to_matrix(t_texts, 
+                                                           mode=self.mode))
         else:
             for d in train_data, val_data, test_data:
                 vals = d[self.features].values
