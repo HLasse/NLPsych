@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "clinical-speech"
+name = "clinicalspeech"
 version = "0.1.0"
 description = "tba"
 authors = ["Lasse <lasseh0310@gmail.com>"]

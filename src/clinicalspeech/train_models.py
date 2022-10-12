@@ -16,7 +16,7 @@ CONFIG_PATH = Path(__file__).parent / "config"
 @hydra.main(
     config_path=str(CONFIG_PATH),
     config_name="default_config",
-    version_base="0.1",
+    version_base="1.1",
 )
 def main(config):
     """Main function for training models"""

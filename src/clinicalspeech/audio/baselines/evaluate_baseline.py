@@ -10,7 +10,6 @@ import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
-
 from wasabi import msg
 
 from clinicalspeech.audio.dataloaders.torch_dataloader import AudioDataset
@@ -26,7 +25,7 @@ def load_split_and_dataloader(
     embedding_fn: Callable,
     batch_size: int,
     num_workers: int,
-) -> tuple(pd.DataFrame, AudioDataset):
+) -> tuple[pd.DataFrame, AudioDataset]:
     """Loads a datasplit and returns the dataframe and the torch dataloader
 
     Args:

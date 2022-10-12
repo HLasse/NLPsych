@@ -89,3 +89,4 @@ target/
 .mypy_cache/
 
 #pretrained_models/
+outputs/

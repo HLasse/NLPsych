@@ -1,7 +1,7 @@
-eval_splits: [train, val, test] # which splits to run evaluation on
+# @package _global_
 
-
-audio: default_config
-data: default_confidg
-ensemble: default_confidg
-text: default_config
+defaults:
+  - audio: default_config
+  - data: default_config
+  - ensemble: default_config
+  - text: default_config
