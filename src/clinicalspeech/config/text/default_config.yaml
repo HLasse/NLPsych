@@ -8,28 +8,51 @@ patience: False
 num_workers: 30
 auto_lr_find: False
 
-baseline_models_to_train: ["xvector", "egemaps", "compare", "aggregated_mfccs", "xlsr-danish", "xlsr"] # wav2vec embedding, 
-wav2vec_model_ids: ["placeholder"]
+descriptive_column_names: ["syllables_per_token_mean",
+                           "sentence_length_mean",
+                           "polarity",
+                           "proportion_unique_tokens",
+                           "dependency_distance_std",
+                           "flesch_reading_ease",
+                           "token_length_mean",
+                           "prop_adjacent_dependency_relation_mean",
+                           "flesch_kincaid_grade",
+                           "rix",
+                           "automated_readability_index",
+                           "token_length_std",
+                           "gunning_fog",
+                           "n_tokens",
+                           "lix",
+                           "coleman_liau_index",
+                           "sentence_length_std",
+                           "syllables_per_token_std",
+                           "dependency_distance_mean",
+                           "prop_adjacent_dependency_relation_std",
+                           "n_unique_tokens",
+                           "n_characters",
+                           "n_sentences"]
+text_embeddings_column_name: fasttext
+text_bow_column_name: None                           
 
-augmentations:
-  transform: Compose
-  params:
-    shuffle: True
-    p: 1
-    transforms:
-      - transform: Gain
-        params:
-          p: 0.5
-      - transform: AddColoredNoise
-        params:
-          p: 0.5
-      - transform: ApplyImpulseResponse
-        params:
-          ir_paths: augmentation_files/ir/Audio
-          p: 0.5
-      - transform: SpliceOut
-        params:
-          p: 0.5
+#augmentations:
+#  transform: Compose
+#  params:
+#    shuffle: True
+#    p: 1
+#    transforms:
+#      - transform: Gain
+#        params:
+#          p: 0.5
+#      - transform: AddColoredNoise
+#        params:
+#          p: 0.5
+#      - transform: ApplyImpulseResponse
+#        params:
+#          ir_paths: augmentation_files/ir/Audio
+#          p: 0.5
+#      - transform: SpliceOut
+#        params:
+#          p: 0.5
 
 pl_trainer_kwargs:
   log_every_n_steps: 1500
