@@ -1,4 +1,4 @@
-train_binary_models: True
+train_binary_models: False
 train_multiclass_models: True
 save_models: False
 
@@ -8,13 +8,13 @@ num_workers: 2
 auto_lr_find: False
 
 baseline_models_to_train: [
-    # "xvector",
-    # "egemaps",
-    # "compare",
-    # "aggregated_mfccs",
-    "xlsr_danish",
-    "xlsr",
-  ]
+#"xvector"
+# "egemaps",
+# "compare",
+# "aggregated_mfccs",
+ "xlsr_danish",
+#"xlsr",
+]
 wav2vec_model_ids: ["placeholder"]
 
 augmentations:

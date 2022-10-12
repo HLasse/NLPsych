@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from sklearn.utils import compute_class_weight
@@ -341,6 +341,7 @@ def train_multiclass_audio_baselines(
     val["label_id"] = val[config.data.label_column_name].replace(
         config.data.multiclass_label2id_mapping
     )
+    id2label = OmegaConf.to_container(config.data.multiclass_id2label_mapping)
 
     msg.divider("Training multiclass models")
     train_and_evaluate_models(
@@ -351,6 +352,6 @@ def train_multiclass_audio_baselines(
         augment_fn=augment_fn,
         embedding_fn_dict=embedding_fn_dict,
         origin="multiclass",
-        id2label=config.data.multiclass_id2label_mapping,
+        id2label=id2label,
         is_baseline=True,
     )
