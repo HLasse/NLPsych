@@ -5,6 +5,7 @@ from typing import Union
 
 import pandas as pd
 import torch_audiomentations
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
 
 from clinicalspeech.audio.dataloaders.torch_dataloader import AudioDataset
@@ -38,7 +39,6 @@ def create_dataloaders(
     training_data = AudioDataset(
         train_filepaths, train_labels, embedding_fn=embedding_fn, augment_fn=augment_fn
     )
-
     validation_data = AudioDataset(val_filepaths, val_labels, embedding_fn=embedding_fn)
 
     train_loader = DataLoader(
@@ -62,7 +62,7 @@ def get_augmentation_fn(config) -> Union[Callable, None]:
     """
     if config.audio.augmentations is not None:
         augmenter = torch_audiomentations.utils.config.from_dict(
-            config.audio.augmentations
+            OmegaConf.to_container(config.audio.augmentations)
         )
         return partial(augmenter, sample_rate=16_000)
     return None

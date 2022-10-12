@@ -37,6 +37,8 @@ class BaselineClassifier(pl.LightningModule):
             "egemaps": 88,
             "aggregated_mfccs": 40,
             "compare": 6373,
+            "xlsr_danish": 1024,
+            "xlsr": 1024,
         }
 
         self.linear = nn.Linear(input_dims[feature_set], 1028)
@@ -58,6 +60,9 @@ class BaselineClassifier(pl.LightningModule):
             x = x.squeeze()
         x = F.leaky_relu(self.linear(x))
         x = self.classifier(x)
+        # add dimension if no batch dimension
+        if len(x.shape) == 1:
+            x = x.unsqueeze(0)
 
         return torch.log_softmax(x, dim=1)
 
@@ -89,7 +94,7 @@ class BaselineClassifier(pl.LightningModule):
         return preds
 
     def cross_entropy_loss(self, logits, labels):
-        return F.nll_loss(logits, labels, weight=self.weights)
+        return F.nll_loss(logits, labels, weight=self.weights.type(logits.dtype))
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)

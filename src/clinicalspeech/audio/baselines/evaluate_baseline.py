@@ -42,7 +42,7 @@ def load_split_and_dataloader(
         tuple(pd.DataFrame, AudioDataset): The dataframe and the torch dataloader
 
     """
-    df = df[df[split_column] == split]
+    df = df[df[split_column] == split].reset_index(drop=True)
     dataset = AudioDataset(
         paths=df[path_col],
         labels=df[label_col],
@@ -71,9 +71,12 @@ def add_predictions_to_df(
     # baseline models return log softmax - removing the log
     logits = torch.exp(logits).detach().cpu().numpy()
     # Getting top prediction per row
-    arg_max = np.argmax(logits)
-    df["prediction"] = id2label[arg_max]
-    df["confidence"] = logits[arg_max]
+    # add extra dimension if no batch dimension
+    if len(logits.shape) == 1:
+        logits = logits[None, :]
+    arg_max = np.argmax(logits, axis=1)
+    df["prediction"] = [id2label[max_pred_idx] for max_pred_idx in arg_max]
+    df["confidence"] = logits.max(axis=1)  # just the top prediction
     df["scores"] = logits.tolist()
     return df
 
@@ -139,7 +142,6 @@ def evaluate_model(
         config (DictConfig): Config file
     """
     model.eval()
-    model.freeze()
 
     # load split and create dataloader
     if isinstance(splits_to_evaluate, str):
@@ -156,13 +158,19 @@ def evaluate_model(
             num_workers=config.audio.num_workers,
         )
         # run evaluation
-        logits = model(dataloader)
+        logits = []
+        for x, _ in iter(dataloader):  # pylint: disable=invalid-name
+            logits.append(model(x))
+        logits = torch.stack(logits).squeeze()
         df_split = add_predictions_to_df(df=df_split, logits=logits, id2label=id2label)
+
+        save_dir = PROJECT_ROOT / "model_predictions"
+        save_dir.mkdir(exist_ok=True)
 
         # save results
         save_to_jsonl(
             df=df_split,
-            save_dir=PROJECT_ROOT / "model_predictions",
+            save_dir=save_dir,
             save_name=f"{target_class}_{model_name}_{split}",
             split=split,
             num_labels=num_labels,

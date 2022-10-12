@@ -5,3 +5,4 @@ defaults:
   - data: synth_data
   - ensemble: default_config
   - text: default_config
+  - project: test_config

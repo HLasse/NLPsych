@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import torch
-import wandb
 from omegaconf import DictConfig
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from sklearn.utils import compute_class_weight
 from wasabi import msg
 
+import wandb
 from clinicalspeech.audio.baselines.baseline_model import BaselineClassifier
 from clinicalspeech.audio.baselines.evaluate_baseline import evaluate_model
 from clinicalspeech.audio.baselines.utils import create_dataloaders
@@ -28,7 +28,7 @@ def create_trainer(config: DictConfig, run_name: str) -> pl.Trainer:
     Returns:
         pl.Trainer: Pytorch lightning trainer
     """
-    wandb_cb = WandbLogger(name=config.run_name)
+    wandb_cb = WandbLogger(name=run_name)
     callbacks = []
     if config.audio.save_models:
         callbacks.append(
@@ -41,7 +41,7 @@ def create_trainer(config: DictConfig, run_name: str) -> pl.Trainer:
                 every_n_epochs=1,
             ),
         )
-    if config.patience:
+    if config.audio.patience:
         callbacks.append(EarlyStopping("val_loss", patience=config.audio.patience))
 
     trainer = pl.Trainer(
@@ -63,7 +63,7 @@ def get_class_weights(
     Returns:
         Union[None, np.array]: Class weights
     """
-    if config.use_class_weights:
+    if config.data.use_class_weights:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # compute weights to avoid overfitting on majority class
         weights = torch.tensor(
@@ -132,10 +132,11 @@ def fit_model(
     """
     run = wandb.init(
         config=config,
-        project=config.wandb_project_name,
+        project=config.project.wandb_project,
         dir=PROJECT_ROOT,
         allow_val_change=True,
         reinit=True,
+        mode=config.project.wandb_mode,
     )
 
     run_config = run.config
@@ -154,17 +155,17 @@ def fit_model(
         embedding_fn=embedding_fn,
         augment_fn=augment_fn,
     )
-
     weights = get_class_weights(config, train_set)
 
     model = BaselineClassifier(
         num_classes=len(train_set["label_id"].unique()),
         feature_set=feat_set,
-        learning_rate=config.learning_rate,
+        learning_rate=config.audio.learning_rate,
         train_loader=train_loader,
         val_loader=val_loader,
         weights=weights,
     )
+
     trainer = create_trainer(config=config, run_name=run_name)
 
     # find optimal learning if specified in config
@@ -241,9 +242,11 @@ def train_and_evaluate_models(
             raise ValueError(
                 f"Invalid feature set {feat_set}. Must be one of {embedding_fn_dict.keys()}"
             )
+        # with torch.no_grad():
         embedding_fn = embedding_fn_dict[feat_set]()
         msg.info(f"Starting {feat_set}...")
         # train model
+
         model = fit_model(
             config=config,
             augment_fn=augment_fn,
@@ -259,7 +262,7 @@ def train_and_evaluate_models(
             df=pd.concat([train, val, test]),
             model=model,
             model_name=feat_set,
-            splits_to_evaluate=config.eval_splits,
+            splits_to_evaluate=config.data.eval_splits,
             embedding_fn=embedding_fn,
             id2label=id2label,
             num_labels=train[config.data.label_column_name].nunique(),
@@ -307,7 +310,7 @@ def train_binary_audio_baselines(
             augment_fn=augment_fn,
             embedding_fn_dict=embedding_fn_dict,
             origin=origin,
-            id2label={config.data.control_label_name: 0, origin: 1},
+            id2label={0: config.data.control_label_name, 1: origin},
             is_baseline=True,
         )
         msg.info("Done!")

@@ -100,6 +100,7 @@ class XVectorEmbedder:
 
 
 class Wav2Vec2Embedder:
+    @torch.no_grad()
     def __init__(self, model_id: str, contextualized_embeddings: bool):
         self.model_id = model_id
         self.contextualized_embeddings = contextualized_embeddings
@@ -109,10 +110,12 @@ class Wav2Vec2Embedder:
             self.model_id, do_normalize=False
         )
         self.model = Wav2Vec2Model.from_pretrained(self.model_id)
+        self.model = self.model.eval()
 
     def __call__(self, audio) -> torch.tensor:
         if isinstance(audio, np.ndarray):
             audio = torch.tensor(audio)
+
         input_values = self.feature_extractor(
             audio,
             return_tensors="pt",
@@ -129,8 +132,8 @@ class Wav2Vec2Embedder:
             embeddings = self.model(input_values).extract_features
         # mean pool
         embeddings = torch.mean(embeddings, 1)
-
-        return embeddings.squeeze()
+        embeddings = embeddings.squeeze()
+        return embeddings
 
 
 class XLSRDanishEmbedder(Wav2Vec2Embedder):
@@ -139,6 +142,7 @@ class XLSRDanishEmbedder(Wav2Vec2Embedder):
             model_id="chcaa/xls-r-300m-danish",
             contextualized_embeddings=True,
         )
+        # shape: (batch, 1024)
 
 
 class XLSREmbedder(Wav2Vec2Embedder):
@@ -147,6 +151,7 @@ class XLSREmbedder(Wav2Vec2Embedder):
             model_id="facebook/wav2vec2-xls-r-300m",
             contextualized_embeddings=True,
         )
+        # shape: (batch, 1024)
 
 
 def get_embedding_fns() -> dict[str, Callable]:
@@ -156,8 +161,8 @@ def get_embedding_fns() -> dict[str, Callable]:
         "xvector": XVectorEmbedder,
         "egemaps": EgeMapsEmbedder,
         "compare": ComParEEmbedder,
-        "aggregated-mfccs": MFCCEmbedder,
-        "xlsr-danish": XLSRDanishEmbedder,
+        "aggregated_mfccs": MFCCEmbedder,
+        "xlsr_danish": XLSRDanishEmbedder,
         "xlsr": XLSREmbedder,
     }
 
@@ -166,7 +171,7 @@ if __name__ == "__main__":
     emb = get_embedding_fns()
     x = torch.rand(2, 16000)
 
-    wav2vec = XLSREmbedder()
+    wav2vec = XLSRDanishEmbedder()
 
     x_hat = wav2vec(x)
     print(x_hat.shape)

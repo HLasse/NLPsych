@@ -1,5 +1,5 @@
-text_path: ../data/text.csv
-audio_path: ../data/audio.csv
+text_path: data/text.csv
+audio_path: data/audio.csv
 
 audio_path_column_name: filename
 id_column_name: id
