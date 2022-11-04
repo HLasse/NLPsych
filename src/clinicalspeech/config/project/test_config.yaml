@@ -1,3 +1,6 @@
-wandb_project: clinspeech-test
 seed: 42
-wandb_mode: "offline"
+
+wandb:
+  use_wandb: True
+  wandb_project: clinspeech-test
+  wandb_mode: "offline"

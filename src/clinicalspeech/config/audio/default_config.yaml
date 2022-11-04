@@ -7,15 +7,13 @@ patience: False
 num_workers: 2
 auto_lr_find: False
 
-baseline_models_to_train: [
-#"xvector"
+baseline_models_to_train: ["xvector"
 # "egemaps",
 # "compare",
 # "aggregated_mfccs",
- "xlsr_danish",
+# "xlsr_danish",
 #"xlsr",
 ]
-wav2vec_model_ids: ["placeholder"]
 
 augmentations:
   transform: Compose

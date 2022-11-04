@@ -2,7 +2,7 @@ from pathlib import Path
 
 import hydra
 
-from clinicalspeech.audio.baselines.baseline_trainer import (
+from clinicalspeech.audio.baselines.run_training import (
     train_binary_audio_baselines,
     train_multiclass_audio_baselines,
 )
@@ -21,6 +21,8 @@ CONFIG_PATH = Path(__file__).parent / "config"
 def main(config):
     """Main function for training models"""
     # Audio set up
+
+    # TODO just load the df - splitting happens in the functions
     audio_train, audio_val, audio_test = load_splits(
         path=config.data.audio_path, split_column_name=config.data.split_column_name
     )

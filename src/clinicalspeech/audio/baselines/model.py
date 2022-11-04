@@ -1,13 +1,17 @@
 """Pytorch lightning module for baseline models."""
-from typing import Optional
+from collections.abc import Callable
+from typing import Optional, Union
 
 import numpy as np
+import pandas as pd
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.utils.data import DataLoader
 from torchmetrics import Accuracy, F1Score, MetricCollection, Precision, Recall
+
+from clinicalspeech.audio.baselines.dataloader import BaselineAudioDataset
 
 
 class BaselineClassifier(pl.LightningModule):
@@ -22,7 +26,7 @@ class BaselineClassifier(pl.LightningModule):
         learning_rate: float,
         train_loader: DataLoader,
         val_loader: DataLoader,
-        weights: Optional[np.ndarray] = None,
+        class_weights: Optional[np.ndarray] = None,
     ):
         super(BaselineClassifier, self).__init__()
 
@@ -30,7 +34,16 @@ class BaselineClassifier(pl.LightningModule):
         self.learning_rate = learning_rate
         self.train_loader = train_loader
         self.val_loader = val_loader
-        self.weights = weights
+        self.class_weights = class_weights
+        self.dataloader_type = BaselineAudioDataset
+        if (
+            train_loader.dataset.__class__ != self.dataloader_type
+            or val_loader.dataset.__class__ != self.dataloader_type
+        ):
+            # TODO test this
+            raise TypeError(
+                f"Expected dataloaders to be of type {self.dataloader_type}, but got {train_loader.dataset.__class__} and {val_loader.dataset.__class__}"
+            )
 
         input_dims = {
             "xvector": 512,
@@ -64,7 +77,7 @@ class BaselineClassifier(pl.LightningModule):
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
 
-        return torch.log_softmax(x, dim=1)
+        return x
 
     def training_step(self, train_batch, batch_idx):
         x, y = train_batch
@@ -94,7 +107,9 @@ class BaselineClassifier(pl.LightningModule):
         return preds
 
     def cross_entropy_loss(self, logits, labels):
-        return F.nll_loss(logits, labels, weight=self.weights.type(logits.dtype))
+        return F.cross_entropy(
+            logits, labels, weight=self.class_weights.type(logits.dtype)
+        )
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
@@ -105,3 +120,27 @@ class BaselineClassifier(pl.LightningModule):
 
     def val_dataloader(self):
         return self.val_loader
+
+    def get_dataloader(
+        self,
+        dataframe: pd.DataFrame,
+        path_column: str,
+        label_column: str,
+        batch_size: int,
+        num_workers: int,
+        embedding_fn: Callable,
+        shuffle: bool,
+        max_frame_length: Union[int, None],
+    ):
+        dataset = BaselineAudioDataset(
+            paths=dataframe[path_column].values,
+            labels=dataframe[label_column].values,
+            embedding_fn=embedding_fn,
+            max_frame_length=max_frame_length,
+        )
+        return DataLoader(
+            dataset,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            shuffle=shuffle,
+        )

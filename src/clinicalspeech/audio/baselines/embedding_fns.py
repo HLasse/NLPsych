@@ -1,4 +1,4 @@
-"""Returns embedding functions for baseline audio models. 
+"""Returns embedding functions for baseline audio models.
 TODO
 - Add wav2vec2 embedding function
 """
@@ -12,7 +12,6 @@ from torchaudio.transforms import MFCC
 
 # pylint: disable=too-few-public-methods
 from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2Model
-from typing_extensions import Literal
 
 
 class MFCCEmbedder:
@@ -23,7 +22,7 @@ class MFCCEmbedder:
             sample_rate=16000, n_mfcc=40, dct_type=2, norm="ortho", log_mels=False
         )
 
-    def __call__(self, audio) -> torch.tensor:
+    def __call__(self, audio) -> torch.Tensor:  # sourcery skip: assign-if-exp
         if isinstance(audio, np.ndarray):
             audio = torch.tensor(audio).type(torch.float)
         mfccs = self.mfcc_extractor(audio)
@@ -36,7 +35,9 @@ class MFCCEmbedder:
 class OpenSmileEmbedder:
     """Enbed audio using OpenSmile"""
 
-    def __init__(self, feature_set: Literal, feature_level: Literal):
+    def __init__(
+        self, feature_set: opensmile.FeatureSet, feature_level: opensmile.FeatureLevel
+    ):
         self.feature_set = feature_set
         self.feature_level = feature_level
         self.opensmile = opensmile.Smile(
@@ -45,7 +46,7 @@ class OpenSmileEmbedder:
             num_workers=10,
         )
 
-    def __call__(self, audio) -> torch.tensor:
+    def __call__(self, audio) -> torch.Tensor:
         # if only 1 file (e.g. in dataloader) just embed the 1 file
         if len(audio.shape) == 1:
             embeddings = (
@@ -86,13 +87,18 @@ class EgeMapsEmbedder(OpenSmileEmbedder):
 class XVectorEmbedder:
     """Embed audio using x-vectors"""
 
+    @torch.no_grad()
     def __init__(self):
         self.model = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-xvect-voxceleb",
             savedir="pretrained_models/spkrec-xvect-voxceleb",
         )
+        # Setting audio_normalizer to None to pickling errors when using
+        # multiprocessing in dataloader. This is fine because the audio_normalizer
+        # attribute is not used in `encode_batch`
+        self.model.audio_normalizer = None
 
-    def __call__(self, audio) -> torch.tensor:
+    def __call__(self, audio) -> torch.Tensor:
         # shape = (batch, 512)
         if isinstance(audio, np.ndarray):
             audio = torch.tensor(audio)
@@ -100,19 +106,18 @@ class XVectorEmbedder:
 
 
 class Wav2Vec2Embedder:
+    """Superclass for wav2vec embedders"""
+
     @torch.no_grad()
     def __init__(self, model_id: str, contextualized_embeddings: bool):
         self.model_id = model_id
         self.contextualized_embeddings = contextualized_embeddings
 
-        # normalization should be done before feature extraction
-        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(
-            self.model_id, do_normalize=False
-        )
+        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(self.model_id)
         self.model = Wav2Vec2Model.from_pretrained(self.model_id)
         self.model = self.model.eval()
 
-    def __call__(self, audio) -> torch.tensor:
+    def __call__(self, audio) -> torch.Tensor:
         if isinstance(audio, np.ndarray):
             audio = torch.tensor(audio)
 
@@ -171,7 +176,7 @@ if __name__ == "__main__":
     emb = get_embedding_fns()
     x = torch.rand(2, 16000)
 
-    wav2vec = XLSRDanishEmbedder()
+    wav2vec = XVectorEmbedder()
 
     x_hat = wav2vec(x)
     print(x_hat.shape)
