@@ -1,4 +1,4 @@
-clinical-speech
+NLPsych
 ==============================
 
 todo
