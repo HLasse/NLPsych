@@ -1,7 +1,7 @@
-text_path: ../data/synth_data.csv
-audio_path: ../data/synth_data.csv
+text_path: data/synth_data.csv
+audio_path: data/synth_data.csv
 
-audio_path_column_name: filename
+audio_path_column_name: audio_path
 id_column_name: id
 label_column_name: label
 trial_column_name: trial_id

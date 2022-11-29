@@ -90,3 +90,5 @@ target/
 
 #pretrained_models/
 outputs/
+wandb*
+model_predictions/

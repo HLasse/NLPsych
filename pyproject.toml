@@ -21,6 +21,7 @@ wandb = "^0.13.4"
 wasabi = "^0.10.1"
 hydra-core = "^1.2.0"
 transformers = "^4.23.1"
+torchvision = "^0.13.1"
 
 [tool.poetry.dev-dependencies]
 
@@ -32,4 +33,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pylint]
 load-plugins = "pylint.extensions.docparams,pylint.extensions.code_style,pylint.extensions.for_any_all,pylint.extensions.typing"
 good-names = "df,p,f,d,e,n,k,i,v"
-disable = "too-many-lines,line-too-long,missing-raises-doc,no-self-argument,unused-wildcard-import,wildcard-import,no-else-return,too-many-arguments,redefined-outer-name,c-extension-no-member,wrong-import-order"
+disable = "too-many-lines,line-too-long,missing-raises-doc,no-self-argument,unused-wildcard-import,wildcard-import,no-else-return,too-many-arguments,wrong-import-order,redefined-outer-name,consider-alternative-union-syntax,trailing-newlines,too-few-public-methods,deprecated-typing-alias,trailing-whitespace,import-error,no-name-in-module,consider-using-assignment-expr,missing-function-docstring,missing-class-docstring,no-member"
+
+[tool.mypy]
+ignore_missing_imports = true

@@ -20,10 +20,10 @@ def load_splits(
     Returns:
         tuple[pd.DataFrame, pd.DataFrame]: Training and validation dataframes
     """
-    data = pd.read_csv(path)
-    train_df = data[data[split_column_name == "train"]]
-    val_df = data[data[split_column_name == "val"]]
-    test_df = data[data[split_column_name == "test"]]
+    data = pd.read_csv(PROJECT_ROOT / path)
+    train_df = data[data[split_column_name] == "train"]
+    val_df = data[data[split_column_name] == "val"]
+    test_df = data[data[split_column_name] == "test"]
     # shuffle train data
     train_df = train_df.sample(frac=1).reset_index(drop=True)
     return train_df, val_df, test_df

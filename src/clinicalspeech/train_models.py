@@ -2,7 +2,7 @@ from pathlib import Path
 
 import hydra
 
-from clinicalspeech.audio.baselines.baseline_trainer import (
+from clinicalspeech.audio.baselines.run_training import (
     train_binary_audio_baselines,
     train_multiclass_audio_baselines,
 )
@@ -21,11 +21,13 @@ CONFIG_PATH = Path(__file__).parent / "config"
 def main(config):
     """Main function for training models"""
     # Audio set up
+
+    # TODO just load the df - splitting happens in the functions
     audio_train, audio_val, audio_test = load_splits(
         path=config.data.audio_path, split_column_name=config.data.split_column_name
     )
     # Subset data for faster debugging
-    if config.debug:
+    if config.data.debug:
         audio_train, audio_val = subsample(audio_train, audio_val)
 
     # Get augmentation function
@@ -33,7 +35,7 @@ def main(config):
     # Get functions for making embeddings
     embedding_fn_dict = get_embedding_fns()
 
-    if config.train_binary_models:
+    if config.audio.train_binary_models:
         train_binary_audio_baselines(
             config=config,
             train=audio_train,
@@ -43,7 +45,7 @@ def main(config):
             embedding_fn_dict=embedding_fn_dict,
         )
 
-    if config.train_multiclass_models:
+    if config.audio.train_multiclass_models:
         train_multiclass_audio_baselines(
             config=config,
             train=audio_train,
